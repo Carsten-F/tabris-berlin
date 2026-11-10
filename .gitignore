@@ -1,0 +1,6 @@
+/vendor/
+/private/config.php
+/private/var/
+/node_modules/
+*.log
+.DS_Store

@@ -101,8 +101,7 @@ T = {
         "contact": "Kontakt",
         "lang_label": "Sprache",
         "home_title": "Tabris – Holdinggesellschaft aus Berlin | Marken &amp; Portfolio",
-        "home_desc": "Tabris ist die Berliner Holding hinter acht Marken und Unternehmen für Tiergesundheit, "
-                     "Tierernährung, Software, Marketing und Fulfillment – Ansprechpartner für Geschäftspartner und Investoren.",
+        "home_desc": "Tabris – Berliner Holdinggesellschaft hinter acht Marken für Tiergesundheit, Tierernährung, Software, Marketing und Fulfillment. Kontakt für Partner und Investoren.",
         "eyebrow": "Holdinggesellschaft · Berlin · Europa",
         "h1": "Die Berliner Holding hinter starken Marken für <em>Tiergesundheit</em> und <em>E-Commerce</em>.",
         "lead": "Tabris bündelt als Holdinggesellschaft die europäischen Aktivitäten unserer Unternehmensgruppe. "
@@ -231,8 +230,7 @@ T = {
         "contact": "Contact",
         "lang_label": "Language",
         "home_title": "Tabris – Holding Company in Berlin | Brands &amp; Portfolio",
-        "home_desc": "Tabris is the Berlin-based holding company behind eight brands and companies in animal health, "
-                     "animal nutrition, software, marketing and fulfilment – the point of contact for business partners and investors.",
+        "home_desc": "Tabris is the Berlin holding company behind eight brands in animal health, animal nutrition, software, marketing and fulfilment. Contact for partners and investors.",
         "eyebrow": "Holding company · Berlin · Europe",
         "h1": "The Berlin holding company behind strong brands in <em>animal health</em> and <em>e-commerce</em>.",
         "lead": "As a holding company, Tabris brings together the European activities of our group. "
@@ -813,9 +811,9 @@ def legal(kind: str, lang: str) -> str:
     <p>{LEGAL_NAME} · {t['updated']}: {'10.11.2026' if lang == 'de' else '10 November 2026'}</p>
   </div>
 </section>
-<div class="wrap prose">
+<div class="wrap"><div class="prose">
 {content}
-</div>"""
+</div></div>"""
     url = SITE + path
     schema = [
         organization(lang),

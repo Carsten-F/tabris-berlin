@@ -124,6 +124,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
   transition: background-color 0.2s, color 0.2s;
 }
 .nav a:hover, .nav a.is-active { background: var(--mauve-100); color: var(--plum-700); }
+.nav__mobile-only { display: none; }
 .header-actions { display: flex; align-items: center; gap: 10px; }
 .lang {
   display: inline-flex; border: 1px solid var(--line); border-radius: 999px; padding: 3px;
@@ -472,6 +473,7 @@ h3 { font-size: 1.15rem; font-weight: 650; letter-spacing: -0.005em; }
   .js .nav { display: none; }
   .js .nav.is-open { display: block; animation: menu-in 0.3s var(--ease); }
   .nav ul { flex-direction: column; align-items: stretch; }
+  .nav__mobile-only { display: block; }
   .nav a { padding: 12px 14px; border-radius: 12px; font-size: 1.02rem; }
   .header-actions { margin-left: auto; }
   .header-actions .btn { display: none; }

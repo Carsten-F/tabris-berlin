@@ -139,7 +139,7 @@
 
   function setStatus(kind, text) {
     status.className = 'form__status' + (kind ? ' is-' + kind : '');
-    status.textContent = text; /* textContent only – never innerHTML */
+    status.textContent = text; /* plain text only, never parsed as markup */
   }
 
   function fetchToken() {

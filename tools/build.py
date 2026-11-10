@@ -505,7 +505,7 @@ def layout(*, lang: str, path: str, alt_path: str, title: str, desc: str, body: 
       </picture>
     </a>
     <nav class="nav" id="nav" aria-label="{t['nav_label']}">
-      <ul>{nav}</ul>
+      <ul>{nav}<li class="nav__mobile-only"><a href="{base}#contact">{t['contact']}</a></li></ul>
     </nav>
     <div class="header-actions">
       <div class="lang" role="group" aria-label="{t['lang_label']}">{lang_switch}</div>

@@ -113,7 +113,7 @@ c=$(code -X POST -H 'Content-Type: text/html' --data '<?php phpinfo();' "$BASE/a
 check "Upload attempt via POST to static path" "405" "$c"
 
 section "6. Redirect and host-header handling"
-for p in '//evil.example/' '/%5Cevil.example/' '//evil.example/%2e%2e' '/en' '/impressum' '/legal-notice'; do
+for p in '//evil.example/index.html' '/x/..//evil.example/index.html' '///evil.example/index.html?x=1' '//evil.example/' '/%5Cevil.example/' '//evil.example/%2e%2e' '/en' '/impressum' '/legal-notice'; do
   loc=$("${CURL[@]}" --path-as-is -o /dev/null -w '%{redirect_url}' "$BASE$p")
   case "$loc" in ""|"$BASE"/*) ok "No off-site redirect for $p (${loc:-none})";; *) bad "Open redirect: $p -> $loc";; esac
 done

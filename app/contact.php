@@ -150,10 +150,12 @@ function pruneState(array $config): void
     if (random_int(1, 25) !== 1) {
         return;
     }
+    // Iterate lazily (no glob()) so pruning stays cheap regardless of the number of files.
     foreach (['nonces' => TOKEN_MAX_AGE + 60, 'rate' => STATE_TTL] as $sub => $ttl) {
-        foreach (glob(stateDir($config, $sub) . '/*') ?: [] as $file) {
-            if (is_file($file) && filemtime($file) < time() - $ttl) {
-                @unlink($file);
+        $cutoff = time() - $ttl;
+        foreach (new \FilesystemIterator(stateDir($config, $sub), \FilesystemIterator::SKIP_DOTS) as $file) {
+            if ($file->isFile() && $file->getMTime() < $cutoff) {
+                @unlink($file->getPathname());
             }
         }
     }
@@ -265,6 +267,9 @@ function sendMail(array $config, array $data): void
     $mail->addAddress((string) $cfg['to']);
     $mail->addReplyTo($data['email'], $data['name']);
     $mail->isHTML(false);
+    // Tells autoresponders / ticket systems not to auto-reply to the (unverified) Reply-To address.
+    $mail->addCustomHeader('Auto-Submitted', 'auto-generated');
+    $mail->addCustomHeader('X-Auto-Response-Suppress', 'All');
     $mail->Subject = sprintf('[tabris.berlin] %s – %s', TOPICS[$data['topic']], $data['name']);
     $mail->Body = implode("\n", [
         'Neue Anfrage über das Kontaktformular auf tabris.berlin',
@@ -336,19 +341,25 @@ function handle(): never
     }
     $data = validate($in);
 
-    if (!consumeNonce($config, $nonce)) {
-        throw new HttpError(403, ['ok' => false, 'error' => 'token']);
+    // Honeypot: bots that fill the hidden field get a fake success. No mail, no state, no quota used.
+    if (($in['website'] ?? '') !== '') {
+        respond(200, ['ok' => true]);
     }
+
+    // Order matters: the per-IP limit comes first so that state files (used tokens, global counter)
+    // can only be created by requests that are still inside their quota.
     $limits = $config['limits'] ?? [];
-    if (!rateLimit($config, clientKey($secret), (int) ($limits['per_ip_per_hour'] ?? 5))
-        || !rateLimit($config, 'global', (int) ($limits['global_per_hour'] ?? 40))) {
+    if (!rateLimit($config, clientKey($secret), (int) ($limits['per_ip_per_hour'] ?? 5))) {
         header('Retry-After: ' . WINDOW);
         throw new HttpError(429, ['ok' => false, 'error' => 'rate']);
     }
-
-    // Honeypot: bots that fill the hidden field get a fake success and no mail is sent.
-    if (($in['website'] ?? '') !== '') {
-        respond(200, ['ok' => true]);
+    if (!consumeNonce($config, $nonce)) {
+        throw new HttpError(403, ['ok' => false, 'error' => 'token']);
+    }
+    if (!rateLimit($config, 'global', (int) ($limits['global_per_hour'] ?? 40))) {
+        error_log('tabris contact: global hourly limit reached');
+        header('Retry-After: ' . WINDOW);
+        throw new HttpError(429, ['ok' => false, 'error' => 'rate']);
     }
 
     sendMail($config, $data);

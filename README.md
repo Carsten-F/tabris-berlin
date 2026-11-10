@@ -56,6 +56,7 @@ Zielstruktur auf dem Server:
    mkdir -p /var/www/tabris.berlin/private/var
    cp -a public app composer.json composer.lock /var/www/tabris.berlin/
    cd /var/www/tabris.berlin && composer install --no-dev --optimize-autoloader
+   rm -rf vendor/phpmailer/phpmailer/{examples,test,docs,get_oauth_token.php}   # nicht benötigte Beispieldateien
    ```
 
 3. Kontaktformular konfigurieren (Secret erzeugen, SMTP-Zugang eintragen):
@@ -65,26 +66,35 @@ Zielstruktur auf dem Server:
    php -r 'echo bin2hex(random_bytes(32)), PHP_EOL;'   # Wert als 'secret' eintragen
    ```
 
-4. Rechte setzen – der Webserver darf nur lesen, PHP darf nur in `private/var` schreiben:
+4. Eigenen PHP-FPM-Pool mit eigenem Benutzer einrichten (isoliert das Formular von anderen Seiten auf dem Server):
 
    ```bash
-   chown -R root:www-data /var/www/tabris.berlin
-   chmod -R u=rwX,g=rX,o= /var/www/tabris.berlin
-   chmod 640 /var/www/tabris.berlin/private/config.php
-   chown www-data:www-data /var/www/tabris.berlin/private/var && chmod 700 /var/www/tabris.berlin/private/var
+   adduser --system --group --no-create-home tabris
+   cp deploy/php-fpm/tabris.conf /etc/php/8.3/fpm/pool.d/tabris.conf
+   systemctl restart php8.3-fpm
    ```
 
-5. nginx einrichten (Zertifikatspfade in `tabris.berlin.conf` ggf. anpassen):
+5. Rechte setzen – nginx darf nur `public/` lesen, PHP nur `app/`, `vendor/`, `private/` und nur in `private/var` schreiben:
+
+   ```bash
+   cd /var/www/tabris.berlin
+   chown -R root:www-data . && chown -R root:tabris app vendor private
+   chmod -R u=rwX,g=rX,o= . && chmod 711 .
+   chmod 640 private/config.php
+   chown tabris:tabris private/var && chmod 700 private/var
+   ```
+
+6. nginx einrichten (Zertifikatspfade in `tabris.berlin.conf` ggf. anpassen):
 
    ```bash
    cp deploy/nginx/snippets/*.conf /etc/nginx/snippets/
    cp deploy/nginx/tabris.berlin.conf /etc/nginx/sites-available/tabris.berlin
    ln -s ../sites-available/tabris.berlin /etc/nginx/sites-enabled/tabris.berlin
    rm -f /etc/nginx/sites-enabled/default
-   nginx -t && systemctl reload nginx
+   nginx -t && systemctl restart nginx
    ```
 
-6. Prüfen:
+7. Prüfen:
 
    ```bash
    SKIP_FORM=1 tests/security-tests.sh      # ohne Testmails
